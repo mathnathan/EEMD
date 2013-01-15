@@ -43,5 +43,7 @@ target_link_libraries( test
 	${GLUT_LIBRARY} 
 	${OPENGL_LIBRARIES} 
 	${ARMADILLO_LIBRARIES} 
+	lapack
+	BLAS
 )
 

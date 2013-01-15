@@ -6,7 +6,7 @@ Project:MATPLOT++ (MATLAB-like plotting tool in C++).
 Version:0.3.13
 ****************************************************************************/
 
-#include <GL/glut.h>
+#include <GLUT/glut.h>
 #include <vector>
 #include <deque>
 #include <string>

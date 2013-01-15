@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <armadillo>
 #include "util.h"
 
 #include <vector>
