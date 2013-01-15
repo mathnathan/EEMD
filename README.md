@@ -4,8 +4,9 @@
 ------------------------------------------------
 
 #### Authors
-Gordon Erlebacher
-Nathan Crock
+
+Gordon Erlebacher - gerlebacher@fsu.edu <br />
+Nathan Crock - mathnathan@gmail.com
 
 #### Institution
 ##### Florida State University
@@ -13,8 +14,7 @@ Nathan Crock
 * Department of Scientific Computing
 * Center For Ocean-Atmospheric Predition Studies
 
-<br /><br />
-
+<br />
 
 ## Compilation and Installation
 
@@ -36,9 +36,8 @@ Nathan Crock
 
 The project is built with cmake 2.8 or higher. From the project's root directory...
 
-'''
-mkdir build
-cd build
-cmake ..
-make
-'''
+
+    mkdir build
+    cd build
+    cmake ..
+    make
