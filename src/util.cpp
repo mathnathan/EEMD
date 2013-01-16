@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <armadillo>
+#include <time.h>
 #include "util.h"
 
 #include <vector>
@@ -51,11 +52,6 @@ void Util::printv(const VEC& v, char* msg = "", int mn, int mx)
 //----------------------------------------------------------------------
 void Util::seedRandom() 
 {
-#ifdef __MAC__
-    sranddev();
-#else
-    #include <time.h>
 	srand( time(NULL) );
-#endif
 }
 //----------------------------------------------------------------------

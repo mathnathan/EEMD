@@ -6,7 +6,12 @@ Project:MATPLOT++ (MATLAB-like plotting tool in C++).
 Version:0.3.13
 ****************************************************************************/
 
-#include <GLUT/glut.h>
+#if defined(APPLE) || defined(_APPLE) || defined(__APPLE__)
+#   include <GLUT/glut.h>
+#else
+#   include <GL/glut.h>
+#endif
+
 #include <vector>
 #include <deque>
 #include <string>

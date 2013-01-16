@@ -2,48 +2,67 @@ CMAKE_MINIMUM_REQUIRED( VERSION 2.8 )
 
 project( EEMD C CXX )
 
-set( DEPENDENCIES GLUT OpenGL Armadillo  )
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${EEMD_BINARY_DIR}/libs)
+set(EEMD_MAJOR_VERSION 0)
+set(EEMD_MINOR_VERSION 1)
+set(EEMD_PATCH_VERSION 0)
+set(EEMD_VERSION
+  ${EEMD_MAJOR_VERSION}.${EEMD_MINOR_VERSION}.${EEMD_PATCH_VERSION})
 
-message("\n")
-foreach(DEP ${DEPENDENCIES})
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${EEMD_BINARY_DIR}/libs )
+set( EEMD_INCLUDE_DIR ${EEMD_SOURCE_DIR}/include )
 
-	message("Looking for ${DEP}...")
-
-    find_package( ${DEP} REQUIRED )
-
-    string( TOUPPER ${DEP} DEP )
-    if( ${DEP}_FOUND )
-        message("${DEP}_Found = TRUE\n")
+find_package( GLUT REQUIRED )
+    if( GLUT_FOUND )
+        message("\nGLUT_Found = TRUE\n")
     else()
-        message("${DEP}_Found = FALSE\n")
+        include( "cmake/find/FindGLUT.cmake" )
+        if( GLUT_FOUND )
+            message("\nGLUT_Found = TRUE\n")
+        else()
+            message("\nGLUT_Found = FALSE\n")
+        endif()
+    endif()
+ 
+find_package( OpenGL REQUIRED )
+    if( OPENGL_FOUND )
+        message("\nOpenGL_Found = TRUE\n")
+    else()
+        include( "cmake/find/FindOpenGL.cmake" )
+        if( OPENGL_FOUND )
+            message("\nOpenGL_Found = TRUE\n")
+        else()
+            message("\nOpenGL_Found = FALSE\n")
+        endif()
+    endif()
+ 
+find_package( OpenCV REQUIRED )
+    if( OpenCV_FOUND )
+        message("\nOpenCV_Found = TRUE\n")
+    else()
+        include( "cmake/find/FindOpenCV.cmake" )
+        if( OpenCV_FOUND )
+            message("\nOpenCV_Found = TRUE\n")
+        else()
+            message("\nOpenCV_Found = FALSE\n")
+        endif()
     endif()
 
-endforeach()
-
-set( EEMD_INCLUDE_DIR ${EEMD_SOURCE_DIR}/include )
-include_directories( 
-
-    ${EEMD_INCLUDE_DIR}
-	${GLUT_INCLUDE_DIR}
-	${OPENGL_INCLUDE_DIR}
-	${ARMADILLO_INCLUDE_DIRS}
-    )
-
-link_directories( 
-
-    ${EEMD_BINARY_DIR}/libs 
-    )
-
-add_subdirectory( src )
-add_executable( test test.cpp ) 
-target_link_libraries( test
-
-    ${EEMD_LIBRARIES}
-	${GLUT_LIBRARY} 
-	${OPENGL_LIBRARIES} 
-	${ARMADILLO_LIBRARIES} 
-	lapack
-	BLAS
-)
-
+find_package( Armadillo REQUIRED )
+    if( ARMADILLO_FOUND )
+        message("\nArmadillo_Found = TRUE\n")
+    else()
+        include( "cmake/find/FindArmadillo.cmake" )
+        if( ARMADILLO_FOUND )
+            message("\nArmadillo_Found = TRUE\n")
+        else()
+            message("\nArmadillo_Found = FALSE\n")
+        endif()
+    endif()
+ 
+if( ${APPLE} )
+    include( "cmake/config/AppleConfig.cmake" )
+elseif( ${WIN32} )
+    include( "cmake/config/WindowsConfig.cmake" )
+else()
+    include( "cmake/config/LinuxConfig.cmake" )
+endif()
