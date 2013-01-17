@@ -23,8 +23,8 @@ void MEEMD::show()
 {
     const string windowName = "Signal";
     namedWindow( windowName, CV_WINDOW_AUTOSIZE );
-    imshow( windowName, signal );
-    waitKey(0);
+    //imshow( windowName, signal );
+    //waitKey(0);
 }
 //----------------------------------------------------------------------
 VEC MEEMD::decompose( MAT& signal, double level, int dimension )

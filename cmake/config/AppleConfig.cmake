@@ -1,8 +1,5 @@
 message( "\nIn AppleConfig.cmake\n" )
 
-# A varibale for Gordon *FIX THIS LATER*
-set( OpenCV_DIR /Users/erlebach/Documents/src/OpenCV-2.4.3 )
-
 # Update the INCLUDES variable
 set( INCLUDES ${INCLUDES} ${EEMD_INCLUDE_DIR} )
 

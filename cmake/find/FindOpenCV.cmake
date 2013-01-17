@@ -53,6 +53,8 @@ find_path(OpenCV_DIR "OpenCVConfig.cmake" DOC "Root directory of OpenCV")
 ### Nathan, my OpenCV_DIR on my mac should be: "/Users/erlebach/Documents/src/OpenCV-2.4.3"
 ### How to set this up in CMake? I don't have the time to figure this out. 
 
+message("GE, OPENCV_DIR: ${OpenCV_DIR}")
+
 ##====================================================
 ## Find OpenCV libraries
 ##----------------------------------------------------
@@ -66,6 +68,7 @@ if(EXISTS "${OpenCV_DIR}")
 
                 ## Search for a specific version
                 set(CVLIB_SUFFIX "${OpenCV_VERSION_MAJOR}${OpenCV_VERSION_MINOR}${OpenCV_VERSION_PATCH}")
+				message("CVLIB_SUFFIX: ${CVLIB_SUFFIX}")
 
         #Otherwise it try to guess it.
         else(EXISTS "${OpenCV_DIR}/OpenCVConfig.cmake")

@@ -30,6 +30,8 @@ add_library( meemd
 )
 
 target_link_libraries( meemd ${LIBRARIES} eemd )
+message("libraries: ${LIBRARIES}")
+
 
 # Update the LIBRARIES variable
 set( LIBRARIES 
