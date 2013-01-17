@@ -1,6 +1,7 @@
 #include "eemd1d.h"
 #include "spline_class.h"
 #include "util.h"
+#include "typedefs.h"
 #include <vector>
 using namespace std;
 

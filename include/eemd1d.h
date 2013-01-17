@@ -1,4 +1,3 @@
-
 #ifndef _EEMD1D_H_
 #define _EEMD1D_H_
 

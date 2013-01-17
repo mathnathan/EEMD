@@ -1,29 +1,16 @@
-include_directories( 
+message( "\nIn AppleConfig.cmake\n" )
 
-    ${EEMD_INCLUDE_DIR}
-    ${GLUT_INCLUDE_DIR}
-    ${OPENGL_INCLUDE_DIR}
-    ${OpenCV_INCLUDE_DIR}
-    ${ARMADILLO_INCLUDE_DIR}
-    )
+# A varibale for Gordon *FIX THIS LATER*
+set( OpenCV_DIR /Users/erlebach/Documents/src/OpenCV-2.4.3 )
 
-link_directories( 
+# Update the INCLUDES variable
+set( INCLUDES ${INCLUDES} ${EEMD_INCLUDE_DIR} )
 
-    ${EEMD_BINARY_DIR}/libs 
-    )
+# Update the LIBRARIES variable (mac needs lapack and BLAS)
+set( LIBRARIES ${LIBRARIES} lapack BLAS )
 
-add_subdirectory( ${EEMD_SOURCE_DIR}/src )
+# Build EEMD libraries
+add_subdirectory( ${EEMD_SOURCE_DIR}/lib ) 
 
-add_executable( test test.cpp ) 
-
-target_link_libraries( test
-
-    ${EEMD_LIBRARIES}
-    ${OpenCV_LIBS}
-    ${GLUT_LIBRARY} 
-    ${OPENGL_LIBRARIES} 
-    ${ARMADILLO_LIBRARIES}
-    lapack
-    BLAS
-)
-
+# Lastly build the examples
+add_subdirectory( ${EEMD_SOURCE_DIR}/examples )

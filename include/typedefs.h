@@ -1,7 +1,6 @@
 #ifndef _TYPEDEFS_H_
 #define _TYPEDEFS_H_
 
-#include <vector>
 #include <opencv2/core/core.hpp>
 #include <armadillo>
 
