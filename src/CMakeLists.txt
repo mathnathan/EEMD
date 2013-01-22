@@ -1,4 +1,3 @@
-
 include_directories( ${INCLUDES} )
 
 add_library( matplotpp
@@ -29,9 +28,10 @@ add_library( meemd
     meemd.cpp
 )
 
-target_link_libraries( meemd ${LIBRARIES} eemd )
-message("libraries: ${LIBRARIES}")
+target_link_libraries( meemd 
 
+    ${LIBRARIES} 
+    eemd )
 
 # Update the LIBRARIES variable
 set( LIBRARIES 

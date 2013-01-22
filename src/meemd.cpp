@@ -27,7 +27,7 @@ void MEEMD::show()
     //waitKey(0);
 }
 //----------------------------------------------------------------------
-VEC MEEMD::decompose( MAT& signal, double level, int dimension )
+void MEEMD::decompose( MAT& signal, double level, int dimension )
 {
 }
 //----------------------------------------------------------------------
