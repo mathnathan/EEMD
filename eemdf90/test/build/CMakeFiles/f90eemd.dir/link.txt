@@ -1,0 +1,2 @@
+/usr/bin/ar cr libf90eemd.a  CMakeFiles/f90eemd.dir/standev.f90.o CMakeFiles/f90eemd.dir/natural_spline.f90.o CMakeFiles/f90eemd.dir/min_max.f90.o CMakeFiles/f90eemd.dir/gasdev.f90.o CMakeFiles/f90eemd.dir/eemd.f90.o
+/usr/bin/ranlib libf90eemd.a

@@ -1,0 +1,2 @@
+/usr/bin/ar cr libcaller.a  CMakeFiles/caller.dir/cppcall.cpp.o
+/usr/bin/ranlib libcaller.a

@@ -1,0 +1,3 @@
+/home/nathan/code/masters_thesis/final_code/eemdf90/test/build/src/CMakeFiles/caller.dir
+/home/nathan/code/masters_thesis/final_code/eemdf90/test/build/CMakeFiles/cppeemd.dir
+/home/nathan/code/masters_thesis/final_code/eemdf90/test/build/CMakeFiles/f90eemd.dir

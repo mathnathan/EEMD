@@ -1,0 +1,2 @@
+/usr/bin/ar cr libutilities.a  CMakeFiles/utilities.dir/Vec3i.cpp.o CMakeFiles/utilities.dir/Vec3.cpp.o CMakeFiles/utilities.dir/main.cpp.o
+/usr/bin/ranlib libutilities.a

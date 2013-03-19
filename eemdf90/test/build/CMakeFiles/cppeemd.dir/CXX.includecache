@@ -1,0 +1,12 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/nathan/code/masters_thesis/final_code/eemdf90/test/test.cpp
+cppcall.h
+/home/nathan/code/masters_thesis/final_code/eemdf90/test/cppcall.h
+
