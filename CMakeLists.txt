@@ -8,7 +8,7 @@ set(EEMD_PATCH_VERSION 0)
 set(EEMD_VERSION
   ${EEMD_MAJOR_VERSION}.${EEMD_MINOR_VERSION}.${EEMD_PATCH_VERSION})
 
-set( EEMD_INCLUDE_DIR ${EEMD_SOURCE_DIR}/include  )
+set( EEMD_INCLUDE_DIR ${EEMD_SOURCE_DIR}/include )
 set( DEPENDENCIES GLUT OpenGL Armadillo NetCDF OpenCV )
 
 # A varibale for Gordon *FIX THIS LATER*
@@ -46,8 +46,8 @@ set( INCLUDES
     ${GLUT_INCLUDE_DIR}
     ${OPENGL_INCLUDE_DIR}
     ${ARMADILLO_INCLUDE_DIRS}
-    ${NetCDF_INCLUDE_DIRECTORIES}
     ${OpenCV_INCLUDE_DIRS}
+    ${NetCDF_INCLUDE_DIRECTORIES}
     ${EEMD_INCLUDE_DIR}
 )
 
@@ -68,6 +68,7 @@ endif()
 
 # Build the F90 EEMD libraries
 add_subdirectory( ${EEMD_SOURCE_DIR}/eemdf90 ) 
+
 # Build the C++ EEMD libraries
 add_subdirectory( ${EEMD_SOURCE_DIR}/src ) 
 

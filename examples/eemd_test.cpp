@@ -18,6 +18,18 @@ MAT imfs;
 //void plot(std::vector<double>& a, std::vector<float>& b);
 
 EEMD* eemdptr;
+#include "eemd1d.h"
+
+using namespace std;
+
+VEC createSignal(int n);
+VEC noiseless_signal;
+double thresh = 0.05;
+vector<VEC> imfs;
+
+void plot(VEC& a, VEC& b);
+
+EEMD1D* eemd;
 
 #include <fstream>
 #include <iostream>

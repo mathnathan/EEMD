@@ -41,7 +41,6 @@ public:
     std::vector<MAT> decomposeRows( const MAT&, float, int, int );
     std::vector<MAT> decomposeCols( const MAT&, float, int, int );
     void combine(); 
-
 };
 
 #endif

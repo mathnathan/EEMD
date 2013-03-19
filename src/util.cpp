@@ -25,7 +25,6 @@ if(VERBOSE) printf("\nVEC Util::getRands(int n=%d)\n", n);
     rands.set_size(n);
     arma::Col<float>::iterator elem = rands.begin();
 	float f;
-
     seedRandom();
 
 	for (int i=0; i < n; i++) {
