@@ -193,7 +193,8 @@ bool MEEMD::save( const std::string& destination ) {
 if(VERBOSE) printf("\nbool MEEMD::save()\n");
 
     char command[255];
-    char* cmd = "mkdir -p ";
+    char* cmd;
+    strcpy( cmd, "mkdir -p ");
     strcpy( command, cmd );
     strcat( command, destination.c_str() );
     system( command );

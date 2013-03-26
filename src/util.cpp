@@ -64,7 +64,7 @@ if(VERBOSE) printf("\nvoid Util::seedRandom()\n");
 }
 //----------------------------------------------------------------------
 void Util::show_mat(const MAT& input, const char* name, bool wait)  {
-if(VERBOSE) printf("\nvoid Util::show_mat(const MAT& input, const char* name=%d, bool wait=%d)\n",name,wait);
+if(VERBOSE) printf("\nvoid Util::show_mat(const MAT& input, const char* name=%s, bool wait=%d)\n",name,wait);
 
     char winName[50];
 

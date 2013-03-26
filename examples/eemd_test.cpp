@@ -18,23 +18,6 @@ MAT imfs;
 //void plot(std::vector<double>& a, std::vector<float>& b);
 
 EEMD* eemdptr;
-#include "eemd1d.h"
-
-using namespace std;
-
-VEC createSignal(int n);
-VEC noiseless_signal;
-double thresh = 0.05;
-vector<VEC> imfs;
-
-void plot(VEC& a, VEC& b);
-
-EEMD1D* eemd;
-
-#include <fstream>
-#include <iostream>
-#include <cstdlib>
-
 
 //----------------------------------------------------------------------
 VEC read_stock_data()
@@ -211,7 +194,7 @@ int main(int argc,char* argv[])
     (eemdptr->input_signal).print();
     printf("Row signal\n");
     input_row.print();
-    printf("input_row.size() = %ld\n", input_row.size() );
+    printf("input_row.size() = %d\n", input_row.size() );
 	imfs = eemdptr->eemdf90( input_row, noise_amplitude, nb_imfs, nb_noise_iters );
     imfs = imfs.t();
 
