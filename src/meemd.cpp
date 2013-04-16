@@ -3,8 +3,11 @@
 #include <stdexcept>
 #include <netcdf.h>
 #include "tools.h"
+#include "eemd.h"
+#include <sstream>
+#include <ctime>
 
-const bool VERBOSE = 0;
+const bool VERBOSE = 1;
 
 //----------------------------------------------------------------------
 MEEMD::MEEMD( const std::string& filename, int type ) {
@@ -13,6 +16,7 @@ if(VERBOSE) printf("\nMEEMD::MEEMD( const std::string& filename=%s )\n", filenam
     if( load( filename, type ) ) {
         printf("signal cols = %d\n", signal.n_cols);
         eemd = new EEMD( signal.n_cols );
+        tools = new Tools;
     }
     else {
         printf( "\nERROR: Could not load file, \"%s\"\n", filename.c_str() );
@@ -21,23 +25,27 @@ if(VERBOSE) printf("\nMEEMD::MEEMD( const std::string& filename=%s )\n", filenam
 }
 //----------------------------------------------------------------------
 MEEMD::MEEMD() {
-if(VERBOSE) printf("\nMEEMD::MEEMD()\n");
 
-    eemd = new EEMD();
-    tools = new Tools();
+    dtype = -1;
+    eemd = new EEMD;
+    tools = new Tools;
 }
 //----------------------------------------------------------------------
 MEEMD::~MEEMD() {
 if(VERBOSE) printf("\nMEEMD::~MEEMD()\n");
 
     delete eemd;
-    delete tools;
+    //delete tools;
+    eemd = NULL;
+    tools = NULL;
 }
 //----------------------------------------------------------------------
 bool MEEMD::load( const std::string& filename, int type  ) {
-if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type=%d )\n", filename.c_str(), type );
+if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s )\n", filename.c_str() );
 
-    if( type == MEEMD_NETCDF ) {
+    dtype = type;
+
+    if( dtype == MEEMD_NETCDF ) {
         int status, ncid, latid, lonid, recid, sschlorid;
         size_t latLen, lonLen, recs;
         char recname[NC_MAX_NAME+1];
@@ -65,8 +73,18 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type
         if( (status = nc_inq_varid(ncid, "sschlor", &sschlorid)) ) {
             printf("Error: %s\n", nc_strerror(status)); exit(2); }
 
-        static size_t start[] = {0,0,0};
+        // COMMENTED OUT on 04/16/13
+        //static size_t start[] = {0,0,0};
+        //static size_t count[] = {recs, latLen, lonLen};
+        
+        // ** ADDED for testing on 04/16/13
+        // Crop the netcdf file to be square and without discontinuities (NANS)
+        lonLen = 140;
+        latLen = 140;
+        static size_t start[] = {0,80,220};
         static size_t count[] = {recs, latLen, lonLen};
+        // ** ADDED for testing
+        
         int array_size = recs*latLen*lonLen;
         float sschlor[ array_size ];
 
@@ -144,7 +162,8 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type
             return false; // Let user handle it by returning a 'false' for now
         }
     }
-    else if( type == MEEMD_IMAGE ) {
+    else if( dtype == MEEMD_IMAGE ) {
+        // OpenCV routines are all packed in the tools class
         signal = tools->load_img( filename );
         *eemd = EEMD( signal.n_cols );
     }
@@ -157,8 +176,32 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type
     return true;
 }
 //----------------------------------------------------------------------
-void MEEMD::show() {
-if(VERBOSE) printf("\nvoid MEEMD::show()\n");
+void MEEMD::showInput() {
+if(VERBOSE) printf("\nvoid MEEMD::showInput()\n");
+
+    if( dtype == -1 ) {
+        printf( "No input data has been loaded! Use the load routine.\n" );
+        exit(EXIT_FAILURE);
+    }
+        
+    char winName[50];
+    sprintf( winName, "Input Signal" );
+    // Use the same display method for now. Perhaps change in future
+    if( dtype == MEEMD_NETCDF ) {
+        tools->show_mat( signal, winName ); }
+    else if( dtype == MEEMD_IMAGE ) {
+        tools->show_mat( signal, winName ); 
+    }
+
+}
+//----------------------------------------------------------------------
+void MEEMD::showOutput() {
+if(VERBOSE) printf("\nvoid MEEMD::showOutput()\n");
+
+    if( dtype == -1 ) {
+        printf( "There are no results to show! First load data using the load() routine.\n" );
+        exit(EXIT_FAILURE);
+    }
 
     int sz = final_imfs.size();
     char name[50];
@@ -166,12 +209,18 @@ if(VERBOSE) printf("\nvoid MEEMD::show()\n");
         sprintf( name, "IMF %d", i );
         tools->show_mat( final_imfs[i], name, false );
     }
-    sprintf( name, "Original" );
-    tools->show_img( signal, name );
+    tools->wait();
+
 }
 //----------------------------------------------------------------------
-void MEEMD::showimf( int which_imf ) {
-if(VERBOSE) printf("\nvoid MEEMD::showimf( int which_imf=%d )\n", which_imf);
+void MEEMD::showIMF( int which_imf ) {
+if(VERBOSE) printf("\nvoid MEEMD::showIMF( int which_imf=%d )\n", which_imf);
+
+    if( dtype == -1 ) {
+        printf( "There are no IMFs to show! First load data using the load() routine.\n" );
+        exit(EXIT_FAILURE);
+    }
+
     char name[50];
     sprintf( name, "IMF %d", which_imf );
     tools->show_mat( final_imfs[which_imf], name );
@@ -200,6 +249,7 @@ if(VERBOSE) printf("\nbool MEEMD::save( const std::string& destination=%s)\n", d
     int sz = final_imfs.size();
     char path[100];
     char name[16];
+
     for( int i=0; i < sz; i++ ) {
         strcpy( path, destination.c_str() );
         sprintf( name, "imf%d.jpg", i );
@@ -211,7 +261,7 @@ if(VERBOSE) printf("\nbool MEEMD::save( const std::string& destination=%s)\n", d
             return false; // Let user handle it by returning a 'false' for now
         }
     }
-    sprintf( name, "original.jpg" );
+    sprintf( name, "input.jpg" );
     strcpy( path, destination.c_str() );
     strcat( path, name );
     try{ tools->save_mat( signal, path ); }

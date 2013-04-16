@@ -12,17 +12,9 @@ extern "C" {
 
 class Tools;
 
-class EEMD
-{
+class EEMD {
+
 public:
-    // Use tools in the MEEMD implementation
-    Tools* tools;
-
-    VEC input_signal;
-    MAT decomposition;
-	VEC residual;
-    int signal_length;
-
     // Constructors
     EEMD( const std::string& fileName );
     EEMD( int n );
@@ -44,11 +36,21 @@ public:
     */
     void addNoise(const float level);
 	VEC addNoise(const VEC& signal, const float level);
+    VEC get_input();
+    VEC get_residual();
 
     // Use the F90 eemd implementation until have time to debug c++ code
     MAT eemdf90( float noise_amplitude, int num_imfs, int num_ensembles );
     MAT eemdf90( VEC input, float noise_amplitude, int num_imfs, int num_ensembles );
     MAT eemdf90( ROW input, float noise_amplitude, int num_imfs, int num_ensembles );
 
+private:
+    // Use tools in the MEEMD implementation
+    Tools* tools;
+
+    VEC input_signal;
+    MAT decomposition;
+	VEC residual;
+    int signal_length;
 };
 #endif

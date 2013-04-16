@@ -65,19 +65,20 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
 
     char winName[50];
 
-    // Scale the input matrix to between 0 and 255
+    // Scale the input matrix to between 0 and 1
     float min = input.min();
     float max = input.max();
     printf("min = %f\n", min);
     printf("max = %f\n", max);
-    min = -30.0;
-    max = 30.0;
-    float scale = 255.0/(max-min);
-    MAT scaled_input = input-min; // Translate to 0
-    scaled_input = scaled_input*scale; // Scale between 0, 255
+    MAT trans_input = input-min; // Translate to 0
+    float scale = 1.0/(max-min);
+    MAT scaled_input = trans_input*scale; // Scale between 0, 1
 
     cv::Mat img(input.n_rows,input.n_cols,CV_32FC1,(void*)scaled_input.memptr());
-    img.convertTo(img, CV_8UC1); // Seems this is needed to show image. All white otherwise
+    if( img.empty() ) {
+        printf( "Image %s has no data!\n", name );
+        exit(EXIT_FAILURE);
+    }
     sprintf( winName, "MAT %s", name );
     int winFlag = CV_WINDOW_NORMAL;
     cv::namedWindow( winName, winFlag );
@@ -100,26 +101,6 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
     }
 #endif
 // -----------------------------
-
-    cv::imshow( winName, img );
-    if(wait) {
-        cv::waitKey(0);
-    }
-}
-//----------------------------------------------------------------------
-void Tools::show_img(const MAT& input, const char* name, bool wait)  {
-if(VERBOSE) printf("\nvoid Tools::show_img(const MAT& input, const char* name=%s, bool wait=%d)\n",name,wait);
-    char winName[50];
-
-    cv::Mat img(input.n_rows,input.n_cols,CV_32FC1,(void*)input.memptr());
-    img.convertTo(img, CV_8UC1); // Seems this is needed to show image. All white otherwise
-    sprintf( winName, "MAT %s", name );
-    int winFlag = CV_WINDOW_NORMAL;
-    cv::namedWindow( winName, winFlag );
-    if( img.empty() ) {
-        printf( "Image %s has no data!\n", name );
-        exit(EXIT_SUCCESS);
-    }
 
     cv::imshow( winName, img );
     if(wait) {

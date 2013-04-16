@@ -153,7 +153,8 @@ class MP : public MatPlot{
         subplot(3,3,1);
         title("original signal");
         //axis( 0,1000,-1,1 );
-        call_plot(ix,eemdptr->input_signal);
+        VEC input = eemdptr->get_input();
+        call_plot(ix,input);
 
         char titlee[10];
         for (int i=0; i < imfs.n_cols; i++) {
@@ -170,7 +171,8 @@ class MP : public MatPlot{
         subplot(3,3,num_imfs+2);
         title("residual");
         //axis( 0,1000,-1,1 );
-        call_plot(ix,eemdptr->residual);
+        VEC residual = eemdptr->get_residual();
+        call_plot(ix, residual );
     }
 }mp;
 void display(){ mp.display(); }
@@ -188,9 +190,9 @@ int main(int argc,char* argv[])
     int nb_imfs = 6;
 	int nb_noise_iters = 100;
 
-    ROW input_row( (eemdptr->input_signal).t() );
+    ROW input_row( (eemdptr->get_input()).t() );
     printf("Input signal\n");
-    (eemdptr->input_signal).print();
+    (eemdptr->get_input()).print();
     printf("Row signal\n");
     input_row.print();
     printf("input_row.size() = %d\n", input_row.size() );

@@ -76,6 +76,14 @@ VEC EEMD::addNoise(const VEC& signal, const float level)
     new_signal = signal + level*rands;
     return(new_signal);
 }
+//----------------------------------------------------------------------
+VEC EEMD::get_input() {
+    return input_signal;
+}
+//----------------------------------------------------------------------
+VEC EEMD::get_residual(){
+    return residual;
+}
 /*----------------------------------------------------------------------
 VEC EEMD::one_iteration(const VEC& rands, int& nb_extremas)
 {
