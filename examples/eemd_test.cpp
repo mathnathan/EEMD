@@ -4,7 +4,6 @@
 
 #include "matplotpp.h"
 #include "typedefs.h"
-#include "util.h"
 #include "eemd.h"
 
 using namespace std;

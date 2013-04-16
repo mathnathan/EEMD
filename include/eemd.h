@@ -3,15 +3,21 @@
 
 #include <vector>
 #include "typedefs.h"
+//#include "tools.h"
 
 // Fortran eemd implementation see eemdf90/eemd.f90 for details
 extern "C" {
     void eemd_( int&, float*, float&, int&, int&, int&, float*);
 }
 
+class Tools;
+
 class EEMD
 {
 public:
+    // Use tools in the MEEMD implementation
+    Tools* tools;
+
     VEC input_signal;
     MAT decomposition;
 	VEC residual;
@@ -22,6 +28,9 @@ public:
     EEMD( int n );
     EEMD( const VEC& input_array );
     EEMD( );
+
+    // Destructor
+    ~EEMD();
 
     bool load( const std::string& filename );
 

@@ -1,5 +1,14 @@
 include_directories( ${INCLUDES} )
 
+# ------ Build the Tools library ------------
+add_library( tools
+
+    tools.cpp 
+)
+
+target_link_libraries( tools ${LIBRARIES} )
+
+# ------ Build the matplotpp library ------------
 add_library( matplotpp
 
     matplotpp.cc 
@@ -8,19 +17,20 @@ add_library( matplotpp
 
 target_link_libraries( matplotpp
 
-    ${GLUT_LIBRARY} 
-    ${OPENGL_LIBRARIES} 
+    tools
 )
 
 # ------ Build the EEMD library ------------
 add_library( eemd
 
     spline_class.cpp 
-    util.cpp 
     eemd.cpp
 )
 
-target_link_libraries( eemd ${LIBRARIES} matplotpp )
+target_link_libraries( eemd 
+    
+    matplotpp 
+)
 
 # ------ Build the MEEMD library ------------
 add_library( meemd
@@ -30,8 +40,8 @@ add_library( meemd
 
 target_link_libraries( meemd 
 
-    ${LIBRARIES} 
-    eemd )
+    eemd
+)
 
 # Update the LIBRARIES variable
 set( LIBRARIES 

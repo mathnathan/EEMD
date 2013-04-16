@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include <stdexcept>
 #include <netcdf.h>
-#include "util.h"
-
-Util util;
+#include "tools.h"
 
 const bool VERBOSE = 0;
 
@@ -26,12 +24,14 @@ MEEMD::MEEMD() {
 if(VERBOSE) printf("\nMEEMD::MEEMD()\n");
 
     eemd = new EEMD();
+    tools = new Tools();
 }
 //----------------------------------------------------------------------
 MEEMD::~MEEMD() {
 if(VERBOSE) printf("\nMEEMD::~MEEMD()\n");
 
     delete eemd;
+    delete tools;
 }
 //----------------------------------------------------------------------
 bool MEEMD::load( const std::string& filename, int type  ) {
@@ -46,7 +46,7 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type
         if( (status = nc_open( filename.c_str(), NC_NOWRITE, &ncid)) ) {
             printf("Error: %s\n", nc_strerror(status)); exit(2); }
 
-#if 0
+#if 1
         if( (status = nc_inq_unlimdim(ncid, &recid)) ) {
             printf("Error: %s\n", nc_strerror(status)); exit(2); }
         if( (status = nc_inq_dim(ncid, recid, recname, &recs)) ) {
@@ -103,10 +103,6 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type
             printf("Error: %s\n", nc_strerror(status)); exit(2); }
         latLen = ylen;
         lonLen = xlen;
-#endif
-
-        std::vector<int> signal_base( sschlor, sschlor+array_size );
-        signal = arma::conv_to<MAT>::from(signal_base);
 
         float max, min;
         max = signal.max();
@@ -115,6 +111,11 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type
         printf( "min = %f\n", min );
         printf( "ylen = %ld\n", ylen );
         printf( "xlen = %ld\n", xlen );
+#endif
+
+        std::vector<int> signal_base( sschlor, sschlor+array_size );
+        signal = arma::conv_to<MAT>::from(signal_base);
+        
         signal.reshape(latLen, lonLen);
         
     // Only to test data... --------
@@ -144,7 +145,7 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, int type
         }
     }
     else if( type == MEEMD_IMAGE ) {
-        signal = util.load_img( filename );
+        signal = tools->load_img( filename );
         *eemd = EEMD( signal.n_cols );
     }
     else {
@@ -163,23 +164,23 @@ if(VERBOSE) printf("\nvoid MEEMD::show()\n");
     char name[50];
     for( int i=0; i < sz; i++ ) {
         sprintf( name, "IMF %d", i );
-        util.show_mat( final_imfs[i], name, false );
+        tools->show_mat( final_imfs[i], name, false );
     }
     sprintf( name, "Original" );
-    util.show_img( signal, name );
+    tools->show_img( signal, name );
 }
 //----------------------------------------------------------------------
 void MEEMD::showimf( int which_imf ) {
 if(VERBOSE) printf("\nvoid MEEMD::showimf( int which_imf=%d )\n", which_imf);
     char name[50];
     sprintf( name, "IMF %d", which_imf );
-    util.show_mat( final_imfs[which_imf], name );
+    tools->show_mat( final_imfs[which_imf], name );
 }
 //----------------------------------------------------------------------
 bool MEEMD::save( const MAT& input, const std::string& filename ) {
 if(VERBOSE) printf("\nbool MEEMD::save( const std::string& filename=%s, const MAT& input )\n", filename.c_str() );
 
-    try { util.save_mat( input, filename.c_str() ); }
+    try { tools->save_mat( input, filename.c_str() ); }
     catch ( std::runtime_error& ex) {
         fprintf(stderr, "Error writing image: %s\n\n\tException: %s",
                 filename.c_str(), ex.what());
@@ -190,12 +191,10 @@ if(VERBOSE) printf("\nbool MEEMD::save( const std::string& filename=%s, const MA
 }
 //----------------------------------------------------------------------
 bool MEEMD::save( const std::string& destination ) {
-if(VERBOSE) printf("\nbool MEEMD::save()\n");
+if(VERBOSE) printf("\nbool MEEMD::save( const std::string& destination=%s)\n", destination.c_str());
 
-    char command[255];
-    char* cmd;
-    strcpy( cmd, "mkdir -p ");
-    strcpy( command, cmd );
+    char command[256];
+    strcpy( command, "mkdir -p ");
     strcat( command, destination.c_str() );
     system( command );
     int sz = final_imfs.size();
@@ -205,7 +204,7 @@ if(VERBOSE) printf("\nbool MEEMD::save()\n");
         strcpy( path, destination.c_str() );
         sprintf( name, "imf%d.jpg", i );
         strcat( path, name );
-        try{ util.save_mat( final_imfs[i], path ); }
+        try{ tools->save_mat( final_imfs[i], path ); }
         catch ( std::runtime_error& ex) {
             fprintf(stderr, "Error writing image, %s, to %s\n\n\tException: %s",
                         name, destination.c_str(), ex.what());
@@ -215,7 +214,7 @@ if(VERBOSE) printf("\nbool MEEMD::save()\n");
     sprintf( name, "original.jpg" );
     strcpy( path, destination.c_str() );
     strcat( path, name );
-    try{ util.save_mat( signal, path ); }
+    try{ tools->save_mat( signal, path ); }
     catch ( std::runtime_error& ex) {
             fprintf(stderr, "Error writing image, %s, to %s\n\n\tException: %s",
                         name, destination.c_str(), ex.what());
@@ -230,34 +229,35 @@ if(VERBOSE) printf("\nstd::vector<MAT> MEEMD::decomposeRows( const MAT& inMAT, f
     int rows = inMAT.n_rows;
 
     // First iteration to set things up
-    ROW r = inMAT.row(0);
-    MAT tmp_imfs = eemd->eemdf90(r, noise_amplitude, nb_imfs, nb_noise_iters);
+    ROW r = inMAT.row(0); // Store the row decompositions of inMat
+    MAT imfs = eemd->eemdf90(r, noise_amplitude, nb_imfs, nb_noise_iters);
 
+    // eemdf90 returns the imfs row wise. Row 0 is imf 0, Row 1 is imf
+    // 1 and so on. Now we take each imf which came from the 0th row and
+    // place it back as the 0th row of each jth imf decomposition matrix. 
     for( int j=0; j<nb_imfs; j++ ) {
-        g.push_back( MAT( tmp_imfs.row(j) ) );
+        g.push_back( MAT( imfs.row(j) ) );
     }
 
     // Now loop through the rest
-    for( int m=1; m<rows; m++ ) {
-        printf("Operating on row %d out of %d\n", m, rows);
-        ROW r = inMAT.row(m);
-        tmp_imfs = eemd->eemdf90(r, noise_amplitude, nb_imfs, nb_noise_iters);
-        if( nb_imfs != tmp_imfs.n_rows ) {
+    for( int n=1; n<rows; n++ ) {
+        if( n%32 == 0 ) printf("Operating on row %d out of %d\n", n, rows);
+        ROW r = inMAT.row(n);
+        imfs = eemd->eemdf90(r, noise_amplitude, nb_imfs, nb_noise_iters);
+        if( nb_imfs != imfs.n_rows ) {
             printf("\nROWS DIFFERENT # of IMFS!\n");
-            printf("nb_imfs = %d, tmp_imfs.n_rows = %d\n", nb_imfs, tmp_imfs.n_rows);
-            //exit(2);
+            printf("nb_imfs = %d, tmp_imfs.n_rows = %d\n", nb_imfs, imfs.n_rows);
+            exit(EXIT_FAILURE);
         }
-        for( int j=0; j<nb_imfs; j++ ) {
-            g[j].insert_rows( m, tmp_imfs.row(j) );
+
+        // Add each nth column onto its respsective kth imf matrix
+        for( int k=0; k<nb_imfs; k++ ) {
+            g[k].insert_rows( n, imfs.row(k) );
         }
     }
 
-    char name[50];
-    char fname[50];
-    static int rcntr = 0;
-    rcntr = rcntr + 1;
-
     return g;
+
 }
 //----------------------------------------------------------------------
 std::vector<MAT> MEEMD::decomposeCols( const MAT& inMAT, float noise_amplitude, int nb_imfs, int nb_noise_iters ) {
@@ -267,59 +267,100 @@ if(VERBOSE) printf("\nstd::vector<MAT> MEEMD::decomposeCols( const MAT& inMAT, f
     int cols = inMAT.n_cols;
 
     // First iteration to set things up
-    VEC c = inMAT.col(0);
-    MAT tmp_imfs = eemd->eemdf90(c, noise_amplitude, nb_imfs, nb_noise_iters);
+    VEC c = inMAT.col(0); // Store the columns of the input matrix
+    MAT imfs = eemd->eemdf90(c, noise_amplitude, nb_imfs, nb_noise_iters);
 
+    // eemdf90 returns the imfs column wise. Column 0 is imf 0, column 1 is imf
+    // 1 and so on. Now we take each imf which came from the 0th column and
+    // place it back as the 0th column of each jth imf decomposition matrix. 
     for( int j=0; j<nb_imfs; j++ ) {
-        g.push_back( MAT( tmp_imfs.col(j) ) );
+        // Make a matrix with 1 column and push it onto the g vector
+        g.push_back( MAT( imfs.col(j) ) ); 
     }
+
+    //char name[32];
+    //sprintf( name, "1 column of g[0]" );
+    //tools->show_mat( g[0], name );
+    //for( int i=0; i<g.size(); i++ ) {
+    //    sprintf( name, "1 column g[%d]", i );
+    //    tools->show_mat( g[i], name, false );
+    //}
+    //sprintf( name, "1 column g[%ld]", g.size() );
+    //tools->show_mat( g[g.size()-1], name );
 
     // Now loop through the rest
-    for( int n=1; n<cols; n++ ) {
-        printf("Operating on col %d out of %d\n", n, cols);
-        VEC c = inMAT.col(n);
-        tmp_imfs = eemd->eemdf90(c, noise_amplitude, nb_imfs, nb_noise_iters);
-        if( nb_imfs != tmp_imfs.n_cols ) {
+    for( int m=1; m<cols; m++ ) {
+        if( m%32 == 0 ) printf("Operating on col %d out of %d\n", m, cols);
+        VEC c = inMAT.col(m); // Store the columns of the input matrix
+        imfs = eemd->eemdf90(c, noise_amplitude, nb_imfs, nb_noise_iters);
+        if( nb_imfs != imfs.n_cols ) {
             printf("\nCOLS DIFFERENT # of IMFS!\n");
-            printf("nb_imfs = %d, tmp_imfs.n_cols = %d\n", nb_imfs, tmp_imfs.n_cols);
+            printf("nb_imfs = %d, tmp_imfs.n_cols = %d\n", nb_imfs, imfs.n_cols);
+            exit(EXIT_FAILURE);
         }
-        for( int j=0; j<nb_imfs; j++ ) {
-            g[j].insert_cols( n, tmp_imfs.col(j) );
-        }
-    }
 
-    char name[50];
-    char fname[50];
-    static int ccntr = 0;
-    ccntr = ccntr + 1;
+        // Add each mth column onto its respsective jth imf matrix
+        for( int j=0; j<nb_imfs; j++ ) {
+            g[j].insert_cols( m, imfs.col(j) );
+        }
+        //sprintf( name, "%d columns of g[0]", m );
+        //tools->show_mat( g[0], name );
+    }
 
     return g;
 
 }
 //----------------------------------------------------------------------
-void MEEMD::decompose( float noise_amplitude, int nb_imfs, int nb_noise_iters ) {
+void MEEMD::decompose( float noise_amplitude, int nb_noise_iters, int nb_imfs ) {
 if(VERBOSE) printf("\nvoid MEEMD::decompose( float noise_amplitude=%f, int nb_imfs=%d, int nb_noise_iters=%d )\n", noise_amplitude, nb_imfs, nb_noise_iters );
 
-    std::vector<MAT> g; // Store the row decompositions of signal
-    std::vector<MAT> g_col; // Store the col decomps of g
+    std::vector<MAT> g; // Store the col decompositions of signal
+    std::vector<MAT> g_row; // Store the row decomps of g
+    int nb_col_imfs = nb_imfs; // input value
+    int nb_row_imfs = nb_imfs; // input value
 
-    g = decomposeRows( signal, noise_amplitude, nb_imfs, nb_noise_iters );
+    if( nb_imfs == -1 ) { // -1 means there was no value given
+        nb_col_imfs = log( signal.n_rows ); // log of signal length=number of columns
+        nb_row_imfs = log( signal.n_cols ); // log of signal length=number of rows
+    }
 
-    // Then decompose the cols of each gj IMF
+    printf("nb_col_imfs = %d\n", nb_col_imfs);
+    printf("nb_row_imfs = %d\n", nb_row_imfs);
+
+    printf("Decomposing Columns...\n");
+    g = decomposeCols( signal, noise_amplitude, nb_col_imfs, nb_noise_iters );
+
+// BEGIN: SHOW COL DECOMP MATS
+    //char name[32];
+    //for( int i=0; i<g.size(); i++ ) {
+        //sprintf( name, "g[%d]", i );
+        //tools->show_mat( g[i], name, false );
+    //}
+    //sprintf( name, "g[%ld]", g.size() );
+    //tools->show_mat( g[g.size()-1], name );
+// END: SHOW COL DECOMP MATS
+
+    // Then decompose the rows of each gj IMF
     for( int j=0; j<g.size(); j++ ) {
         printf("Operating on IMF %d out of %ld\n", j, g.size() );
 
-        g_col = decomposeCols( g[j], noise_amplitude, nb_imfs, nb_noise_iters );
-        // The below line means h[j][k] = jth row decomp, kth col decomp
-        h.push_back( g_col );
+        g_row = decomposeRows( g[j], noise_amplitude, nb_row_imfs, nb_noise_iters );
+        // The below line means h[j][k] = jth col decomp, kth row decomp
+        h.push_back( g_row );
     }
 }
 //----------------------------------------------------------------------
-void MEEMD::combine() { 
+std::vector<MAT> MEEMD::combine() { 
 if(VERBOSE) printf("\nvoid MEEMD::combine()\n");
 
-    int r = h.size();
-    int c = h[0].size();
+    int c = h.size(); // Number of columns
+    int r = h[0].size(); // Number of rows
+    if( r != c ) { 
+        // I believe they should always be equal if the number of IMFS
+        // is the same for both rows and cols. 
+        // Proof by contradiction.
+        printf("\n\nr != c\n\n"); exit(EXIT_FAILURE); 
+    }
     int lim = c > r ? r : c;
     MAT tmp1(h[0][0]); 
     MAT tmp2(h[0][0]);
@@ -327,18 +368,17 @@ if(VERBOSE) printf("\nvoid MEEMD::combine()\n");
     for( int i=0; i<lim; i++ ) {
         tmp1.zeros();
         tmp2.zeros();
-        for( int k=i; k<r; k++ ) {
+        for( int k=i; k<c; k++ ) {
             tmp1 += h[i][k]; 
         }   
-        for( int j=i+1; j<c; j++ ) {
+        for( int j=i+1; j<r; j++ ) {
             tmp2 += h[j][i];
         }
 
-        tmp1 += tmp2;
-        final_imfs.push_back( tmp1 );
+        MAT imf = tmp1 + tmp2;
+        final_imfs.push_back( imf );
     }
+
+    return final_imfs;
 }
 //----------------------------------------------------------------------
-
-
-

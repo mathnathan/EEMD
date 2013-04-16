@@ -8,23 +8,20 @@
 
 #include "eemd.h"
 #include "spline_class.h"
-#include "util.h"
 #include "typedefs.h"
 #include <vector>
 #include <stdio.h>
-
-using namespace std;
-
-Util u;
+#include "tools.h"
 
 //----------------------------------------------------------------------
-EEMD::EEMD( const string& fileName ) {
+EEMD::EEMD( const std::string& fileName ) {
 
     if(  !load( fileName ) ) {
         printf("Could not open or find the image\n");
         exit( EXIT_FAILURE );
     }
-    //nb_imfs = std::numeric_limits<size_t>::max();
+
+    tools = new Tools();
 
 }   
 //----------------------------------------------------------------------
@@ -34,6 +31,7 @@ EEMD::EEMD( int n ) {
     input_signal.zeros(n);
     signal_length = n;
 
+    tools = new Tools();
 }       
 //----------------------------------------------------------------------
 EEMD::EEMD( const VEC& input_array ) {
@@ -41,13 +39,20 @@ EEMD::EEMD( const VEC& input_array ) {
     signal_length = input_array.size();
     input_signal = input_array;
 
+    tools = new Tools();
 }   
 //----------------------------------------------------------------------
 EEMD::EEMD( ) {
 
+    tools = new Tools();
 }
 //----------------------------------------------------------------------
-bool EEMD::load( const string& fileName )
+EEMD::~EEMD( ) {
+
+    delete tools;
+}
+//----------------------------------------------------------------------
+bool EEMD::load( const std::string& fileName )
 {   
     // read data and stuff
     // Doesn't do anything yet...
@@ -58,14 +63,14 @@ bool EEMD::load( const string& fileName )
 //----------------------------------------------------------------------
 void EEMD::addNoise(const float level)
 {
-    VEC rands = u.getRands( signal_length );
+    VEC rands = tools->getRands( signal_length );
     input_signal += level*rands;
 }               
 //----------------------------------------------------------------------
 VEC EEMD::addNoise(const VEC& signal, const float level)
 {
     int n = signal.size();
-    VEC rands = u.getRands(n);
+    VEC rands = tools->getRands(n);
     VEC new_signal(n);
 
     new_signal = signal + level*rands;
@@ -216,8 +221,8 @@ VEC EEMD::compute_imf(const VEC& rands, int& nb_extremas)
         VEC diff = one_iteration(rands_new, nb_extremas);
         if (nb_extremas < 3) break; // do not use return value
 
-        float diff_norm = u.l2Norm(diff);
-        float rands_norm = u.l2Norm(rands_new);
+        float diff_norm = tools->l2Norm(diff);
+        float rands_norm = tools->l2Norm(rands_new);
 
         rands_new = rands_new - diff;
 
@@ -313,7 +318,7 @@ MAT EEMD::eemdf90( VEC input, float noise_amplitude, int num_imfs, int num_ensem
     // Obtain a pointer to the data in the input array for the Fortran function
     float* indata = input.memptr();
     int length = input.size();
-    int seed = u.getRand(); // C++ random seed for the F90 random number generator
+    int seed = tools->getRand(); // C++ random seed for the F90 random number generator
     float* result = new float[length*(num_imfs+2)]; // Store the results
 
     // Call the Fortran subroutine
@@ -335,7 +340,7 @@ MAT EEMD::eemdf90( VEC input, float noise_amplitude, int num_imfs, int num_ensem
     imfs.shed_col(0);
 
     //printf("(rows,cols) = (%d,%d)\n", imfs.n_rows, imfs.n_cols);
-    // A sanity check to see if the F90 result makes any sense
+    // A sanity check to help see if the F90 result makes any sense
     float diff = norm( f90_input-input, 2 );
     if( diff > .1 && false ) {
         //printf( "\n\tFortran input signal differs from the C++ input signal by %f \n", diff);
@@ -354,9 +359,10 @@ MAT EEMD::eemdf90( ROW input, float noise_amplitude, int num_imfs, int num_ensem
 
     // Tanspose the Row vector into a Column vector
     VEC col_input = input.t();
-    MAT imfs = eemdf90(col_input, noise_amplitude, num_imfs, num_ensembles);
+    MAT col_imfs = eemdf90(col_input, noise_amplitude, num_imfs, num_ensembles);
+    MAT row_imfs = col_imfs.t();
     
-    return imfs.t();
+    return row_imfs;
 
 }
 //----------------------------------------------------------------------
