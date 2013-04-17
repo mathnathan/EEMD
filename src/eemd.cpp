@@ -61,6 +61,12 @@ bool EEMD::load( const std::string& fileName )
     return true;
 }
 //----------------------------------------------------------------------
+bool EEMD::zeros( int n ){
+    input_signal.zeros(n);
+    signal_length = n;
+    return true;
+}
+//----------------------------------------------------------------------
 void EEMD::addNoise(const float level)
 {
     VEC rands = tools->getRands( signal_length );

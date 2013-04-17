@@ -43,6 +43,9 @@
         DO J=KLO+1,KHI-1
           A=REAL(KHI-J)/H
           B=REAL(J-KLO)/H
+          ! NATHAN CROCK: The Error here probably has to do with the
+          ! different number of IMFs which result from the ln( nb_cols )
+          ! and ln( nb_rows )
           YA(J)=A*Y(I-1)+B*Y(I)   &
                 +((A*A*A-A)*Y2(I-1)+(B*B*B-B)*Y2(I))*(H*H)/6.0
         ENDDO

@@ -24,7 +24,8 @@ public:
     // Destructor
     ~EEMD();
 
-    bool load( const std::string& filename );
+    bool load( const std::string& fileName );
+    bool zeros( int n );
 
     // Not using the C++ eemd implementation for now...
     /*

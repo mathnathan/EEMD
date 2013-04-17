@@ -34,14 +34,14 @@ MEEMD::MEEMD() {
 MEEMD::~MEEMD() {
 if(VERBOSE) printf("\nMEEMD::~MEEMD()\n");
 
-    delete eemd;
-    //delete tools;
+    //delete eemd; // This causes a glibc double free error. Not sure why
+    delete tools;
     eemd = NULL;
     tools = NULL;
 }
 //----------------------------------------------------------------------
 bool MEEMD::load( const std::string& filename, int type  ) {
-if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s )\n", filename.c_str() );
+if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, dtype=%d )\n", filename.c_str(), type );
 
     dtype = type;
 
@@ -74,15 +74,15 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s )\n", fil
             printf("Error: %s\n", nc_strerror(status)); exit(2); }
 
         // COMMENTED OUT on 04/16/13
-        //static size_t start[] = {0,0,0};
-        //static size_t count[] = {recs, latLen, lonLen};
+        static size_t start[] = {0,0,0};
+        static size_t count[] = {recs, latLen, lonLen};
         
         // ** ADDED for testing on 04/16/13
         // Crop the netcdf file to be square and without discontinuities (NANS)
-        lonLen = 140;
-        latLen = 140;
-        static size_t start[] = {0,80,220};
-        static size_t count[] = {recs, latLen, lonLen};
+        //lonLen = 140;
+        //latLen = 140;
+        //static size_t start[] = {0,80,220};
+        //static size_t count[] = {recs, latLen, lonLen};
         // ** ADDED for testing
         
         int array_size = recs*latLen*lonLen;
@@ -131,9 +131,9 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s )\n", fil
         printf( "xlen = %ld\n", xlen );
 #endif
 
-        std::vector<int> signal_base( sschlor, sschlor+array_size );
+        std::vector<float> signal_base( sschlor, sschlor+array_size );
         signal = arma::conv_to<MAT>::from(signal_base);
-        
+
         signal.reshape(latLen, lonLen);
         
     // Only to test data... --------
@@ -409,9 +409,15 @@ if(VERBOSE) printf("\nvoid MEEMD::combine()\n");
         // I believe they should always be equal if the number of IMFS
         // is the same for both rows and cols. 
         // Proof by contradiction.
-        printf("\n\nr != c\n\n"); exit(EXIT_FAILURE); 
+        printf("\n\nr != c\n\n"); 
+        int nb_col_imfs = log( signal.n_rows ); // log of signal length=number of columns
+        int nb_row_imfs = log( signal.n_cols ); // log of signal length=number of rows
+        printf("Num Col IMFS = %d\n", nb_col_imfs );
+        printf("Num Row IMFS = %d\n", nb_row_imfs );
+        exit(EXIT_FAILURE); 
     }
     int lim = c > r ? r : c;
+    printf("c=%d\nr=%d\nlim=%d\n",c,r,lim);
     MAT tmp1(h[0][0]); 
     MAT tmp2(h[0][0]);
         

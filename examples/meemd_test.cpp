@@ -20,15 +20,18 @@ const std::string lena_big = "../data/lena.bmp";
 
 int main() {
 
+    const std::string input = gom; // Choose the input file here
+
     float noise_amplitude = 1.0;
     int nb_noise_iters = 100;
-    const std::string input = gom; // Choose the input file here
     MEEMD m;
     if( input == gom || input == simple_square ) {
         m.load( input, MEEMD_NETCDF ); 
+        //printf("NetCDF file %s Successfully loaded\n", input.c_str() );
     } 
     else {
         m.load( input, MEEMD_IMAGE );
+        //printf("Image file %s Successfully loaded\n", input.c_str() );
     }
 
     m.decompose( noise_amplitude, nb_noise_iters );

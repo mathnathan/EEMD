@@ -65,7 +65,7 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
 
     char winName[50];
 
-    // Scale the input matrix to between 0 and 1
+    // Scale the input matrix to between 0 and 1 (OpenCV Requirement)
     float min = input.min();
     float max = input.max();
     printf("min = %f\n", min);
