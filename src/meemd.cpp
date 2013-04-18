@@ -361,11 +361,15 @@ if(VERBOSE) printf("\nstd::vector<MAT> MEEMD::decomposeCols( const MAT& inMAT, f
 
 }
 //----------------------------------------------------------------------
-void MEEMD::decompose( float noise_amplitude, int nb_noise_iters, int nb_imfs ) {
+// This is the function the programmer will use to decompose their signal. It
+// currently only supports 2 dimensional signals. The variables are self
+// descriptive with the exception of perhaps "direction", which is used to
+// indicate which direction to decompose first. 
+void MEEMD::decompose( float noise_amplitude, int nb_noise_iters, int nb_imfs, int direction ) {
 if(VERBOSE) printf("\nvoid MEEMD::decompose( float noise_amplitude=%f, int nb_imfs=%d, int nb_noise_iters=%d )\n", noise_amplitude, nb_imfs, nb_noise_iters );
 
-    std::vector<MAT> g; // Store the col decompositions of signal
-    std::vector<MAT> g_row; // Store the row decomps of g
+    std::vector<MAT> g1; // Store the first direction decompositions of signal
+    std::vector<MAT> g2; // Store the second direction decomps of g1
     int nb_col_imfs = nb_imfs; // input value
     int nb_row_imfs = nb_imfs; // input value
 
@@ -374,48 +378,94 @@ if(VERBOSE) printf("\nvoid MEEMD::decompose( float noise_amplitude=%f, int nb_im
         nb_row_imfs = log( signal.n_cols ); // log of signal length=number of rows
     }
 
+    if( direction == -1 ) { // -1 means there was no value given
+        direction = nb_row_imfs > nb_col_imfs ? 1 : 0; // Decompose first the direction 
+                                                       // with the largest axis
+    }
+
+    MAT test(3,4);
+    float ctr=1.0;
+    for(int i=0; i<3; i++) {
+        for(int j=0; j<4; j++) {
+            test(i,j) = ctr;
+            ctr += 1.0;
+        }
+    }
+    tools->show_mat(test, "test case");
     printf("nb_col_imfs = %d\n", nb_col_imfs);
     printf("nb_row_imfs = %d\n", nb_row_imfs);
 
-    printf("Decomposing Columns...\n");
-    g = decomposeCols( signal, noise_amplitude, nb_col_imfs, nb_noise_iters );
+    printf("cols=%d\n",signal.n_cols);
+    printf("rows=%d\n",signal.n_rows);
+    for( int i=0; i<signal.n_rows; i++ ) {
+        signal.row(i) = signal.row(100);
+    }
+    tools->show_mat(signal,"original signal");
+
+    if( direction == 0 ) { // 0 means to decompose the columns first
+        printf("direction = %d = columns\n", direction);
+        printf("\nDecomposing Columns...\n");
+        g1 = decomposeCols( signal, noise_amplitude, nb_col_imfs, nb_noise_iters );
 
 // BEGIN: SHOW COL DECOMP MATS
-    //char name[32];
-    //for( int i=0; i<g.size(); i++ ) {
-        //sprintf( name, "g[%d]", i );
-        //tools->show_mat( g[i], name, false );
-    //}
-    //sprintf( name, "g[%ld]", g.size() );
-    //tools->show_mat( g[g.size()-1], name );
+    char name[32];
+    for( int i=0; i<g1.size(); i++ ) {
+        sprintf( name, "g1[%d]", i );
+        tools->show_mat( g1[i], name, false );
+    }
+    sprintf( name, "g1[%ld]", g1.size() );
+    tools->show_mat( g1[g1.size()-1], name );
 // END: SHOW COL DECOMP MATS
 
-    // Then decompose the rows of each gj IMF
-    for( int j=0; j<g.size(); j++ ) {
-        printf("Operating on IMF %d out of %ld\n", j, g.size() );
+        // Then decompose the rows of each g1j IMF
+        for( int j=0; j<g1.size(); j++ ) {
+            printf("Operating on IMF %d out of %ld\n", j, g1.size() );
 
-        g_row = decomposeRows( g[j], noise_amplitude, nb_row_imfs, nb_noise_iters );
-        // The below line means h[j][k] = jth col decomp, kth row decomp
-        h.push_back( g_row );
+            g2 = decomposeRows( g1[j], noise_amplitude, nb_row_imfs, nb_noise_iters );
+            // The below line means h[j][k] = jth col decomp, kth row decomp
+            h.push_back( g2 );
+        }
+    } else if( direction == 1 ) { // 1 means to decompose the rows first
+        printf("direction = %d = rows\n", direction);
+        printf("\nDecomposing Rows...\n");
+        g1 = decomposeRows( signal, noise_amplitude, nb_row_imfs, nb_noise_iters );
+
+// BEGIN: SHOW COL DECOMP MATS
+    char name[32];
+    for( int i=0; i<g1.size(); i++ ) {
+        sprintf( name, "g1[%d]", i );
+        tools->show_mat( g1[i], name, false );
+    }
+    sprintf( name, "g1[%ld]", g1.size() );
+    tools->show_mat( g1[g1.size()-1], name );
+// END: SHOW COL DECOMP MATS
+
+        // Then decompose the columns of each g1j IMF
+        for( int j=0; j<g1.size(); j++ ) {
+            printf("Operating on IMF %d out of %ld\n", j, g1.size() );
+
+            g2 = decomposeCols( g1[j], noise_amplitude, nb_row_imfs, nb_noise_iters );
+            // The below line means h[j][k] = jth row decomp, kth col decomp
+            h.push_back( g2 );
+        }
+    } else {
+        printf("direction = %d = UNKNOWN\n", direction);
+        printf("\nERROR: direction must be either 0 or 1\n");
+        exit( EXIT_FAILURE );
     }
 }
 //----------------------------------------------------------------------
+// This is the function the programmer will use to combine the decompositions
+// into the relevant intrinsic mode functions. It will return the IMFS.
+// Currently there is no need for it to be an independent function, however in
+// the event I would like to change the combination strategy, it would be nice
+// to simply pass a parameter to the function to control its behavior.
 std::vector<MAT> MEEMD::combine() { 
 if(VERBOSE) printf("\nvoid MEEMD::combine()\n");
 
-    int c = h.size(); // Number of columns
+    int c = h.size(); // Number of columns 
     int r = h[0].size(); // Number of rows
-    if( r != c ) { 
-        // I believe they should always be equal if the number of IMFS
-        // is the same for both rows and cols. 
-        // Proof by contradiction.
-        printf("\n\nr != c\n\n"); 
-        int nb_col_imfs = log( signal.n_rows ); // log of signal length=number of columns
-        int nb_row_imfs = log( signal.n_cols ); // log of signal length=number of rows
-        printf("Num Col IMFS = %d\n", nb_col_imfs );
-        printf("Num Row IMFS = %d\n", nb_row_imfs );
-        exit(EXIT_FAILURE); 
-    }
+
     int lim = c > r ? r : c;
     printf("c=%d\nr=%d\nlim=%d\n",c,r,lim);
     MAT tmp1(h[0][0]); 

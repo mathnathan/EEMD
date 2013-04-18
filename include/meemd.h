@@ -28,7 +28,7 @@ public:
     void showOutput();
 
     // Decomposition Routines
-    void decompose( float, int, int=-1 );
+    void decompose( float, int, int=-1, int=-1 );
     std::vector<MAT> decomposeRows( const MAT&, float, int, int );
     std::vector<MAT> decomposeCols( const MAT&, float, int, int );
     std::vector<MAT> combine(); 

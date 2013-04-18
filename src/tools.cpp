@@ -70,11 +70,13 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
     float max = input.max();
     printf("min = %f\n", min);
     printf("max = %f\n", max);
+
     MAT trans_input = input-min; // Translate to 0
     float scale = 1.0/(max-min);
     MAT scaled_input = trans_input*scale; // Scale between 0, 1
 
-    cv::Mat img(input.n_rows,input.n_cols,CV_32FC1,(void*)scaled_input.memptr());
+    //cv::Mat img(input.n_rows,input.n_cols,CV_32FC1,(void*)scaled_input.memptr());
+    cv::Mat img(input.n_cols,input.n_rows,CV_32FC1,(void*)scaled_input.memptr());
     if( img.empty() ) {
         printf( "Image %s has no data!\n", name );
         exit(EXIT_FAILURE);
@@ -84,9 +86,7 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
     cv::namedWindow( winName, winFlag );
     
 // Only to test data... --------
-#if 0
-    printf("min = %f\n", min);
-    printf("max = %f\n", max);
+#if 1
     printf("depth = %d\n", img.depth() );
     printf("channels = %d\n", img.channels() );
     printf("0 |");
@@ -95,12 +95,13 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
             printf("%d |", y);
         }
         for( int x=0; x<img.cols; x++ ) {
-            printf(" %f ", img.at<float>(x,y));
+            printf(" %f ", img.at<float>(y,x)*(max-1)+min);
         }
         printf("|\n");
     }
 #endif
 // -----------------------------
+
 
     cv::imshow( winName, img );
     if(wait) {

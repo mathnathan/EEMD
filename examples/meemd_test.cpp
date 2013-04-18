@@ -11,7 +11,8 @@ Tools tools;
 // Possible input files
 const std::string gom_crop = "../data/crop.png";
 const std::string gom_crop_sq = "../data/crop_square.png";
-const std::string gom_crop_sq1 = "../data/crop_square+1.png";
+const std::string gom_crop_r = "../data/crop_square_158x159.png";
+const std::string gom_crop_c = "../data/crop_square_159x158.png";
 const std::string gom = "../data/sschlor.ncom.GOMh0.04.012.nest1.2009101000_00000000.nc";
 const std::string simple_square = "../data/simple_xy.nc";
 const std::string lena_small = "../data/lena_small.bmp";
@@ -20,7 +21,7 @@ const std::string lena_big = "../data/lena.bmp";
 
 int main() {
 
-    const std::string input = gom; // Choose the input file here
+    const std::string input = gom_crop_c; // Choose the input file here
 
     float noise_amplitude = 1.0;
     int nb_noise_iters = 100;
@@ -34,7 +35,7 @@ int main() {
         //printf("Image file %s Successfully loaded\n", input.c_str() );
     }
 
-    m.decompose( noise_amplitude, nb_noise_iters );
+    m.decompose( noise_amplitude, nb_noise_iters, 5, 0 );
     std::vector<MAT> results = m.combine();
     m.showInput();
     m.showOutput();
