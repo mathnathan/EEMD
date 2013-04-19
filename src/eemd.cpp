@@ -340,29 +340,26 @@ MAT EEMD::eemdf90( VEC input, float noise_amplitude, int num_imfs, int num_ensem
             num_ensembles, num_imfs, seed, result );
 
     // Create the resulting armadillo structure to store the result
-    MAT imfs;
-    imfs = arma::Mat<float>(result,length,num_imfs+2); 
+    MAT imfs(result,length,num_imfs+2); 
 
-    //printf("(rows,cols) = (%d,%d)\n", decomposition.n_rows, decomposition.n_cols);
-    // The last column of the result is the residue (from F90 documentation)
+    // The last column of the result is the residue (from F90 documentation
+    // in file eemdf90/eemd.f90)
     residual = imfs.col(num_imfs+1);
     imfs.shed_col(num_imfs+1);
 
-    //printf("(rows,cols) = (%d,%d)\n", imfs.n_rows, imfs.n_cols);
-    // The Very first column is the original singal (from F90 documentation)
+    // The Very first column is the original signal (from F90 documentation
+    // in file eemdf90/eemd.f90)
     VEC f90_input = imfs.col(0);
     imfs.shed_col(0);
 
-    //printf("(rows,cols) = (%d,%d)\n", imfs.n_rows, imfs.n_cols);
     // A sanity check to help see if the F90 result makes any sense
     float diff = norm( f90_input-input, 2 );
     if( diff > .1 && false ) {
-        //printf( "\n\tFortran input signal differs from the C++ input signal by %f \n", diff);
-        for( int i=0; i<length; i++ ) {
-            printf( "C++[%d] = %f \t F90[%d] = %f\n", i, input[i], i, f90_input[i] );
-        }
+        printf( "\n\tFortran input signal differs from the C++ input signal by %f \n", diff);
+        //for( int i=0; i<length; i++ ) {
+        //    printf( "C++[%d] = %f \t F90[%d] = %f\n", i, input[i], i, f90_input[i] );
+        //}
         exit(EXIT_FAILURE);
-
     }
 
     return imfs;

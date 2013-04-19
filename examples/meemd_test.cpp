@@ -21,7 +21,7 @@ const std::string lena_big = "../data/lena.bmp";
 
 int main() {
 
-    const std::string input = gom_crop_c; // Choose the input file here
+    const std::string input = gom_crop_r; // Choose the input file here
 
     float noise_amplitude = 1.0;
     int nb_noise_iters = 100;

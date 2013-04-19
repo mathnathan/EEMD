@@ -151,8 +151,6 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, dtype=%d
 #endif
     // -----------------------------
 
-        *eemd = EEMD( signal.n_cols );
-
         try { }
         catch ( std::runtime_error& ex ) {
             // Also use 'status' to print a more descriptive error
@@ -165,12 +163,10 @@ if(VERBOSE) printf("\nbool MEEMD::load( const std::string& filename=%s, dtype=%d
     else if( dtype == MEEMD_IMAGE ) {
         // OpenCV routines are all packed in the tools class
         signal = tools->load_img( filename );
-        *eemd = EEMD( signal.n_cols );
     }
     else {
+        printf( "\nERROR: Input data type, %s, not recognized\n" );
         return false;
-        //printf( "\nERROR: Input data type, %s, not recognized\n" );
-        //exit(1);
     }
 
     return true;
@@ -328,16 +324,6 @@ if(VERBOSE) printf("\nstd::vector<MAT> MEEMD::decomposeCols( const MAT& inMAT, f
         g.push_back( MAT( imfs.col(j) ) ); 
     }
 
-    //char name[32];
-    //sprintf( name, "1 column of g[0]" );
-    //tools->show_mat( g[0], name );
-    //for( int i=0; i<g.size(); i++ ) {
-    //    sprintf( name, "1 column g[%d]", i );
-    //    tools->show_mat( g[i], name, false );
-    //}
-    //sprintf( name, "1 column g[%ld]", g.size() );
-    //tools->show_mat( g[g.size()-1], name );
-
     // Now loop through the rest
     for( int m=1; m<cols; m++ ) {
         if( m%32 == 0 ) printf("Operating on col %d out of %d\n", m, cols);
@@ -383,24 +369,8 @@ if(VERBOSE) printf("\nvoid MEEMD::decompose( float noise_amplitude=%f, int nb_im
                                                        // with the largest axis
     }
 
-    MAT test(3,4);
-    float ctr=1.0;
-    for(int i=0; i<3; i++) {
-        for(int j=0; j<4; j++) {
-            test(i,j) = ctr;
-            ctr += 1.0;
-        }
-    }
-    tools->show_mat(test, "test case");
     printf("nb_col_imfs = %d\n", nb_col_imfs);
     printf("nb_row_imfs = %d\n", nb_row_imfs);
-
-    printf("cols=%d\n",signal.n_cols);
-    printf("rows=%d\n",signal.n_rows);
-    for( int i=0; i<signal.n_rows; i++ ) {
-        signal.row(i) = signal.row(100);
-    }
-    tools->show_mat(signal,"original signal");
 
     if( direction == 0 ) { // 0 means to decompose the columns first
         printf("direction = %d = columns\n", direction);
@@ -425,7 +395,8 @@ if(VERBOSE) printf("\nvoid MEEMD::decompose( float noise_amplitude=%f, int nb_im
             // The below line means h[j][k] = jth col decomp, kth row decomp
             h.push_back( g2 );
         }
-    } else if( direction == 1 ) { // 1 means to decompose the rows first
+    } 
+    else if( direction == 1 ) { // 1 means to decompose the rows first
         printf("direction = %d = rows\n", direction);
         printf("\nDecomposing Rows...\n");
         g1 = decomposeRows( signal, noise_amplitude, nb_row_imfs, nb_noise_iters );

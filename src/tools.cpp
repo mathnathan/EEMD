@@ -77,6 +77,7 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
 
     //cv::Mat img(input.n_rows,input.n_cols,CV_32FC1,(void*)scaled_input.memptr());
     cv::Mat img(input.n_cols,input.n_rows,CV_32FC1,(void*)scaled_input.memptr());
+    img = img.t(); // Armadillo is column-major and OpenCV is row-major
     if( img.empty() ) {
         printf( "Image %s has no data!\n", name );
         exit(EXIT_FAILURE);
@@ -86,7 +87,9 @@ if(VERBOSE) printf("\nvoid Tools::show_mat(const MAT& input, const char* name=%s
     cv::namedWindow( winName, winFlag );
     
 // Only to test data... --------
-#if 1
+#if 0
+    printf("OpenCV Rows = %d\n", img.rows);
+    printf("OpenCV Cols = %d\n", img.cols);
     printf("depth = %d\n", img.depth() );
     printf("channels = %d\n", img.channels() );
     printf("0 |");
