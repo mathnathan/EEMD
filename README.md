@@ -59,3 +59,7 @@ The project is built with cmake 2.8 or higher. From the project's root directory
     cd build
     cmake ..
     make
+
+#### To Cite
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.437113.svg)](https://doi.org/10.5281/zenodo.437113)
