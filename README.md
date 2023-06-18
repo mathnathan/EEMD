@@ -3,7 +3,7 @@
 
 ------------------------------------------------
 
-** This project is still under very heavy development **
+** This project is no longer maintained **
 
 #### Authors
 
